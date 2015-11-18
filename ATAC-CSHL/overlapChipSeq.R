@@ -1,5 +1,6 @@
 library(ChIPpeakAnno)
-
+library(ggplot2)
+library(ggthemes)
 #biocLite("org.Hs.eg.db")
 library(org.Hs.eg.db)
 
@@ -44,3 +45,21 @@ chip.df$chipExp <- row.names(chip.df)
 
 chip.df.LY1 <- chip.df[order(-chip.df$per.ol),]
 chip.df.LY1$chipExp <- reorder(chip.df.LY1$chipExp, chip.df.LY1$per.ol)
+
+
+chip.df.LY1$type <- NA
+chip.df.LY1$type[grepl("H3k*", chip.df.LY1$chipExp)] <- "Marks"
+
+chip.df.LY1$type[!grepl("H3k*", chip.df.LY1$chipExp)] <- "Transcription_Factors"
+
+### plot the percentage overlaps ############
+ggplot(chip.df.LY1, aes(y=per.ol, chipExp, fill=type)) + geom_bar(stat = "identity") + theme_few() + scale_fill_tableau("tableau10medium") + 
+    coord_cartesian(ylim=c(0,100)) + theme(text=element_text(colour="grey20",size=18), 
+                                           axis.text.x = element_text(angle=0,hjust=.5,vjust=-1,face="plain"),
+                                           axis.text.y = element_text(angle=0,hjust=1,vjust=0,face="plain"),  
+                                           axis.title.x = element_text(angle=0,hjust=.5,vjust=0,face="plain"),
+                                           axis.title.y = element_text(angle=90,hjust=.5,vjust=.5,face="plain"))
+ggsave(filename = "~/Desktop/LY1.chip.pdf", width = 12, height = 6)
+
+
+
