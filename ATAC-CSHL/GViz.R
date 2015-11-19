@@ -1,7 +1,8 @@
 # if needed
 source("http://bioconductor.org/biocLite.R")
-# biocLite("Gviz")
-
+biocLite("Gviz")
+?BiocUpgrade()
+biocLite("BiocUpgrade")
 library(Rsamtools)
 library(Gviz)
 #options(ucscChromosomeNames=FALSE)

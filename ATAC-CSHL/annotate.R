@@ -1,14 +1,14 @@
-library(ChIPpeakAnno)
 source("atacseqFuncitons.R")
-
 source("https://bioconductor.org/biocLite.R")
 #biocLite("SRAdb")
+library(ChIPpeakAnno)
 biocLite("org.Hs.eg.db")
 biocLite("TxDb.Hsapiens.UCSC.hg19.knownGene")
 library(org.Hs.eg.db)
 library(rtracklayer)
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
-source("atacseqFunctions.R")
+
+
 setwd("ATAC-CSHL")
 
 ##set up to read Bed 6+4 narrowPeak file as output by MACS2.1
@@ -32,6 +32,9 @@ anno <- addGeneIDs(anno, silence=TRUE, orgAnn="org.Hs.eg.db", feature_id_type="e
 annoclose <- anno[abs(anno$distancetoFeature) < 2000]
 
 unique(na.omit(as.vector(annoclose$symbol)))
+
+
+pie(table(anno$insideFeature))
 
 ### chromosomal regions ###
 
