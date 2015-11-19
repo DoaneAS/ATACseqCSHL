@@ -1,9 +1,14 @@
 library(ChIPpeakAnno)
+source("atacseqFuncitons.R")
+
 source("https://bioconductor.org/biocLite.R")
-biocLite("SRAdb")
+#biocLite("SRAdb")
 biocLite("org.Hs.eg.db")
+biocLite("TxDb.Hsapiens.UCSC.hg19.knownGene")
 library(org.Hs.eg.db)
 library(rtracklayer)
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+source("atacseqFunctions.R")
 setwd("ATAC-CSHL")
 
 ##set up to read Bed 6+4 narrowPeak file as output by MACS2.1
@@ -43,10 +48,10 @@ aCR<-assignChromosomeRegion(anno, nucleotideLevel=FALSE,
 barplot(aCR$percentage)
 
 
-#### Annotate with chip-Seq in LY1 #####
+#### Annotate with chip-Seq peaks in LY1 from GSE 29282 #####
 ### 
 
-library(rtracklayer)
+
 
 tracks <- read.table("LY1.chipseqAnno.txt", stringsAsFactors = F, header=TRUE)
 
@@ -61,8 +66,7 @@ for (i in seq(1:length(tracks$tf))) {
     
 }
 
-
-##chr18
+## limit to peaks on chr18 only ##
 
 
 chipSeqDB18 <- endoapply(chipSeqDB, function(x) {
@@ -73,35 +77,39 @@ chipSeqDB18 <- endoapply(chipSeqDB, function(x) {
 #make a table of overlaps
 olTable <- list()
 for (i in seq(1:length((chipSeqDB18)))) {
-    xt <- ftable(!is.na(findOverlaps(unlist(chipSeqDB18[i]), LY1, select="arbitrary")))
-    #xtt <- addmargins(xt, 2, FUN = list(list(Total = sum)))
+    a <- ftable(!is.na(findOverlaps(unlist(chipSeqDB18[i]), anno, select="arbitrary")))
     tfname <- names(chipSeqDB18)[i]
-    xtt <- addmargins(xt, 2, FUN = list(list(Total = sum)))
-    olTable[[tfname]] <- as.vector(xtt)
+    b <- addmargins(a, 2, FUN = list(list(Total = sum)))
+    olTable[[tfname]] <- as.vector(b)
 }
 
-
+#make a data frame of the overlaps 
 chip.df <- as.data.frame.list(olTable)
+#name the columns
 colnames(chip.df) <- c("Non-overlapping", "Overlapping", "Total")
+
+#compute percentage overlap
 chip.df$per.ol <- (chip.df$Overlapping / chip.df$Total) * 100
 chip.df$chipExp <- row.names(chip.df)
 
+#order by precent overlap
 chip.df.LY1 <- chip.df[order(-chip.df$per.ol),]
 chip.df.LY1$chipExp <- reorder(chip.df.LY1$chipExp, chip.df.LY1$per.ol)
 
-
+# make a categorical factor for the type of chip-seq target ##
 chip.df.LY1$type <- NA
 chip.df.LY1$type[grepl("H3k*", chip.df.LY1$chipExp)] <- "Marks"
 
 chip.df.LY1$type[!grepl("H3k*", chip.df.LY1$chipExp)] <- "Transcription_Factors"
 
 ### plot the percentage overlaps ##
-ggplot(chip.df.LY1, aes(y=per.ol, chipExp, fill=type)) + geom_bar(stat = "identity") + theme_few() + scale_fill_tableau("tableau10medium") + 
+library(ggplot2)
+(ggplot(chip.df.LY1, aes(y=per.ol, chipExp, fill=type)) + geom_bar(stat = "identity") + theme_minimal() + scale_fill_brewer(palette ="Accent") + 
     coord_cartesian(ylim=c(0,100)) + theme(text=element_text(colour="grey20",size=18), 
                                            axis.text.x = element_text(angle=0,hjust=.5,vjust=-1,face="plain"),
                                            axis.text.y = element_text(angle=0,hjust=1,vjust=0,face="plain"),  
                                            axis.title.x = element_text(angle=0,hjust=.5,vjust=0,face="plain"),
-                                           axis.title.y = element_text(angle=90,hjust=.5,vjust=.5,face="plain"))
+                                           axis.title.y = element_text(angle=90,hjust=.5,vjust=.5,face="plain")))
 
 
 ######

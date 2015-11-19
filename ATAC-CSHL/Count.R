@@ -5,22 +5,7 @@ library(GenomicAlignments)
 
 setwd("TEACHING")
 
-# import GTF
-gtf <- import("refseq_hg19.gtf.gz", asRangedData=FALSE)
-
-# what did we just get ?
-class(gtf)
-
-# EXERCISE: how many genes in GTF ?
-
-# which of these rows are exons?
-idx <- mcols(gtf)$type == "exon"
-
-# get exons only
-exons <- gtf[idx]
-
-# genes
-genes <- split(exons, mcols(exons)$gene_id)
+anno
 
 # set up BAM scanning parameters
 params <- ScanBamParam(flag=scanBamFlag(isUnmappedQuery=FALSE))
@@ -29,7 +14,7 @@ params <- ScanBamParam(flag=scanBamFlag(isUnmappedQuery=FALSE))
 bam <- readGAlignments("LY1_ATAC_chr18.bam", param=params)
 
 # calculate counts
-counts <- summarizeOverlaps( features=genes,
+counts <- summarizeOverlaps( features=anno,
                              reads=bam,
                              mode="Union",
                              ignore.strand=TRUE,
@@ -43,6 +28,8 @@ counts
 count_table <- assays(counts, withDimnames=TRUE)$counts
 
 # EXERCISE 1: how many counts for BCL2 ?
+bcl2 <- counts[mcols(counts)$symbol %in% "BCL2",]
+assay(bcl2)
 
 # EXERCISE 2: convert to count per million reads (cpm)
 
