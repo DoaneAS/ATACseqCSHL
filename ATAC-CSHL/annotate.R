@@ -19,7 +19,8 @@ ge <- genes(txdb, columns=c("tx_name", "gene_id", "tx_type"))
 anno = annotatePeakInBatch(atacpeaks, FeatureLocForDistance = "TSS",  
                                      PeakLocForDistance="middle", select = "first", 
                                      output="nearestLocation",  AnnotationData=genes(txdb))
-#add gene symbols
+
+#add gene symbols ##
 anno <- addGeneIDs(anno, silence=TRUE, orgAnn="org.Hs.eg.db", feature_id_type="entrez_id", IDs2Add=c("symbol"))
 
 
@@ -27,8 +28,22 @@ annoclose <- anno[abs(anno$distancetoFeature) < 2000]
 
 unique(na.omit(as.vector(annoclose$symbol)))
 
+### chromosomal regions ###
 
-#### Annotate with chip-Seq in LY1 ###
+aCR<-assignChromosomeRegion(anno, nucleotideLevel=FALSE, 
+                            proximal.promoter.cutoff=2000L,
+                            immediate.downstream.cutoff=2000L,
+                            precedence=c("Promoters", "immediateDownstream", 
+                                         "fiveUTRs", "threeUTRs", 
+                                         "Exons", "Introns"), 
+                            TxDb=txdb)
+
+#plot the percentages
+
+barplot(aCR$percentage)
+
+
+#### Annotate with chip-Seq in LY1 #####
 ### 
 
 library(rtracklayer)
@@ -80,7 +95,7 @@ chip.df.LY1$type[grepl("H3k*", chip.df.LY1$chipExp)] <- "Marks"
 
 chip.df.LY1$type[!grepl("H3k*", chip.df.LY1$chipExp)] <- "Transcription_Factors"
 
-### plot the percentage overlaps ############
+### plot the percentage overlaps ##
 ggplot(chip.df.LY1, aes(y=per.ol, chipExp, fill=type)) + geom_bar(stat = "identity") + theme_few() + scale_fill_tableau("tableau10medium") + 
     coord_cartesian(ylim=c(0,100)) + theme(text=element_text(colour="grey20",size=18), 
                                            axis.text.x = element_text(angle=0,hjust=.5,vjust=-1,face="plain"),
@@ -89,7 +104,7 @@ ggplot(chip.df.LY1, aes(y=per.ol, chipExp, fill=type)) + geom_bar(stat = "identi
                                            axis.title.y = element_text(angle=90,hjust=.5,vjust=.5,face="plain"))
 
 
-
+######
 
 
 
