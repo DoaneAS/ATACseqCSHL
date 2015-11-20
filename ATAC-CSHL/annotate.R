@@ -8,6 +8,8 @@ library(org.Hs.eg.db)
 library(rtracklayer)
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 
+library(ggplot2)
+
 source("atacseqFuncitons.R")
 
 setwd("ATAC-CSHL")
@@ -19,26 +21,30 @@ extraCols_narrowPeak <- c(peakName = "character", DisScore = "numeric", strand="
 #import the file
 atacpeaks <- import.bed("LY1.chr18.narrowPeak", extraCol= extraCols_narrowPeak)
 
+#load genome annotation
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 txdb = TxDb.Hsapiens.UCSC.hg19.knownGene
 ge <- genes(txdb, columns=c("tx_name", "gene_id", "tx_type"))
 
 
-## annotate each peak by the gene with closest TSS
+## assign each peak to a gene according to the nearest TSS
+#what are implications of doing this?  when would our assignments tend to be more or less accurate?
+
 anno = annotatePeakInBatch(atacpeaks, FeatureLocForDistance = "TSS",  
                                      PeakLocForDistance="middle", select = "first", 
                                      output="nearestLocation",  AnnotationData=genes(txdb))
 
 #add gene symbols ##
+
 anno <- addGeneIDs(anno, silence=TRUE, orgAnn="org.Hs.eg.db", feature_id_type="entrez_id", IDs2Add=c("symbol"))
 
 
+#what are the genes that are assigned to peaks and located with <= 2kb
 annoclose <- anno[abs(anno$distancetoFeature) < 2000]
 
 unique(na.omit(as.vector(annoclose$symbol)))
 
-#locacation of peaks with respect to genes
-
+#characterize the overlap with respect to genes
 pie(table(anno$insideFeature))
 
 ### chromosomal regions ###
@@ -56,10 +62,13 @@ aCR<-assignChromosomeRegion(anno, nucleotideLevel=FALSE,
 barplot(aCR$percentage)
 
 
-#### Annotate with chip-Seq peaks in LY1 from GSE 29282 #####
-### 
 
-library(ChIPseeker)
+##################################################################################
+####    HOW WELL DO ATAC_SEQ PEAKS CAPTURE REGIONS IDENTIFIED BY CHIP-SEQ    #####
+#### Annotate with chip-Seq peaks in LY1 from GSE 29282                      #####
+##################################################################################
+
+
 
 tracks <- read.table("LY1.chipseqAnno.txt", stringsAsFactors = F, header=TRUE)
 
@@ -100,11 +109,13 @@ colnames(chip.df) <- c("Non-overlapping", "Overlapping", "Total")
 chip.df$per.ol <- (chip.df$Overlapping / chip.df$Total) * 100
 chip.df$chipExp <- row.names(chip.df)
 
-#order by precent overlap
+#order dataframe by precent overlap
 chip.df.LY1 <- chip.df[order(-chip.df$per.ol),]
+
+# order factor levels by percent overlap
 chip.df.LY1$chipExp <- reorder(chip.df.LY1$chipExp, chip.df.LY1$per.ol)
 
-# make a categorical factor for the type of chip-seq target ##
+# make a categorical factor to distinguish histone marjs and transcription factors ##
 chip.df.LY1$type <- NA
 chip.df.LY1$type[grepl("H3k*", chip.df.LY1$chipExp)] <- "Marks"
 
@@ -112,17 +123,13 @@ chip.df.LY1$type[!grepl("H3k*", chip.df.LY1$chipExp)] <- "Transcription_Factors"
 
 ### plot the percentage overlaps ##
 library(ggplot2)
+
 (ggplot(chip.df.LY1, aes(y=per.ol, chipExp, fill=type)) + geom_bar(stat = "identity") + theme_minimal() + scale_fill_brewer(palette ="Accent") + 
     coord_cartesian(ylim=c(0,100)) + theme(text=element_text(colour="grey20",size=18), 
                                            axis.text.x = element_text(angle=0,hjust=.5,vjust=-1,face="plain"),
                                            axis.text.y = element_text(angle=0,hjust=1,vjust=0,face="plain"),  
                                            axis.title.x = element_text(angle=0,hjust=.5,vjust=0,face="plain"),
                                            axis.title.y = element_text(angle=90,hjust=.5,vjust=.5,face="plain")))
-
-
-######
-
-
 
 ###
 ####  To GVIZ.R #################
