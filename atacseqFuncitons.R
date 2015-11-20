@@ -1,5 +1,5 @@
 ###Atac seq functions
-source("http://faculty.ucr.edu/~tgirke/Documents/R_BioCond/My_R_Scripts/GOHyperGAll.txt")
+#source("http://faculty.ucr.edu/~tgirke/Documents/R_BioCond/My_R_Scripts/GOHyperGAll.txt")
 source("http://bioconductor.org/biocLite.R")
 Lab.palette <- colorRampPalette(c("white", "yellow", "red"), space = "Lab")
 

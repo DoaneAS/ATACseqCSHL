@@ -1,10 +1,11 @@
 # if needed
 source("http://bioconductor.org/biocLite.R")
-biocLite("Gviz")
-?BiocUpgrade()
-biocLite("BiocUpgrade")
+#biocLite("Gviz")
+#biocLite("BiocUpgrade")
 library(Rsamtools)
 library(Gviz)
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+library(org.Hs.eg.db)
 #options(ucscChromosomeNames=FALSE)
  
 bamfile <- 'LY1_ATAC_chr18.bam'
@@ -35,6 +36,7 @@ plotTracks(list(itrack, gtrack, bam_track), from = start, to = end, type="hist")
 
 # now create a gene track based on UCSC knownGene annotation
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+
 txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
 grtrack <- GeneRegionTrack(txdb, genome = 'hg19', from = start, to = end,
                            transcriptAnnotation = "symbol",
@@ -52,7 +54,11 @@ cpgIslands <- UcscTrack(genome='hg19', chromosome='chr18',
                         fill="#006400", name="CGI")
 
 
+#inlcude gene symbol
+
+symbols <- unlist(mapIds(org.Hs.eg.db, gene(grtrack), "SYMBOL", "ENTREZID", multiVals = "first"))
+symbol(grtrack) <- symbols[gene(grtrack)]
+
 # plot all tracks
 plotTracks(list(itrack, gtrack, bam_track, grtrack, cpgIslands), from = start, to = end, type="hist")
-
 

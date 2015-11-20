@@ -2,8 +2,8 @@ source("atacseqFuncitons.R")
 source("https://bioconductor.org/biocLite.R")
 #biocLite("SRAdb")
 library(ChIPpeakAnno)
-biocLite("org.Hs.eg.db")
-biocLite("TxDb.Hsapiens.UCSC.hg19.knownGene")
+#biocLite("org.Hs.eg.db")
+#biocLite("TxDb.Hsapiens.UCSC.hg19.knownGene")
 library(org.Hs.eg.db)
 library(rtracklayer)
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
@@ -21,6 +21,8 @@ library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 txdb = TxDb.Hsapiens.UCSC.hg19.knownGene
 ge <- genes(txdb, columns=c("tx_name", "gene_id", "tx_type"))
 
+
+## annotate each peak by the gene with closest TSS
 anno = annotatePeakInBatch(atacpeaks, FeatureLocForDistance = "TSS",  
                                      PeakLocForDistance="middle", select = "first", 
                                      output="nearestLocation",  AnnotationData=genes(txdb))
@@ -33,14 +35,15 @@ annoclose <- anno[abs(anno$distancetoFeature) < 2000]
 
 unique(na.omit(as.vector(annoclose$symbol)))
 
+#locacation of peaks with respect to genes
 
 pie(table(anno$insideFeature))
 
 ### chromosomal regions ###
 
 aCR<-assignChromosomeRegion(anno, nucleotideLevel=FALSE, 
-                            proximal.promoter.cutoff=2000L,
-                            immediate.downstream.cutoff=2000L,
+                            proximal.promoter.cutoff=2500L,
+                            immediate.downstream.cutoff=2500L,
                             precedence=c("Promoters", "immediateDownstream", 
                                          "fiveUTRs", "threeUTRs", 
                                          "Exons", "Introns"), 
@@ -54,7 +57,7 @@ barplot(aCR$percentage)
 #### Annotate with chip-Seq peaks in LY1 from GSE 29282 #####
 ### 
 
-
+library(ChIPseeker)
 
 tracks <- read.table("LY1.chipseqAnno.txt", stringsAsFactors = F, header=TRUE)
 
@@ -119,6 +122,8 @@ library(ggplot2)
 
 
 
+###
+####  To GVIZ.R #################
 
 
 
@@ -133,43 +138,3 @@ library(ggplot2)
 
 
 
-
-### IGV ####
-#anno$peak[table(anno$peak)>1]
-pie(table(anno$insideFeature))
-sock <- IGVsocket()
-#IGVgoto(sock,"chr1:247553693-247553876")
-IGVgoto(sock,"chr1:117117370-117117553")
-#> IGVload(sock, "ATAC-LY1.hg19.sorted.nodup.nonM.bam")
-##
-
-####chipSeq overlaps
-
-
-
-
-
-
-ovly7 <- findOverlaps(atacpeaks, atacpeaksLY7)
-atacpeaks_noly7 <- atacpeaks[-queryHits(ovly7)]
-
-ovly1 <- findOverlaps(atacpeaksLY7, atacpeaks)
-atacpeaksLY7_noly1 <- atacpeaksLY7[-queryHits(ovly1)]
-
-library(rtracklayer)
-export(resize(atacpeaksLY7[annoLY7only_close$peak], width=200, fix="center"), con="LY7only.bed", format="bed")
-
-# annotate LY7 specific peaks
-
-annoLY7only <- annotatePeakInBatch(atacpeaksLY7_noly1, AnnotationData=TSS.human.GRCh37,
-                                   output="nearestLocation", maxgap=1000L)
-annoLY7only <- addGeneIDs(annotatedPeak=annoLY7only,
-                          orgAnn="org.Hs.eg.db",
-                          IDs2Add="symbol")
-
-annoLY7only[abs(annoLY7only$distancetoFeature) < 5000]$symbol
-
-annoLY7only_close <- annoLY7only[abs(annoLY7only$distancetoFeature) < 5000]
-#IRF4, HOXA7, SOX2
-
-unique(na.omit(as.vector(annoLY7only_close$symbol)))
