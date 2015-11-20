@@ -1,6 +1,9 @@
-.Rproj.user
-.Rhistory
-.RData
+*.Rproj.user
+*.Rhistory
+*.RData
 PeakAtlasIDR.R
-.Rmd
-.Rpres
+*.Rmd
+*.Rpres
+tutorial.Rpres
+tutorial*
+*.md

@@ -49,9 +49,12 @@ library(org.Hs.eg.db)
 library(rtracklayer)
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 ```
+
 ========================================================
 
+
 ```{r}
+
 setwd("ATAC-CSHL")
 
 ##set up to read Bed 6+4 narrowPeak file as output by MACS2.1
@@ -63,6 +66,7 @@ extraCols_narrowPeak <- c(peakName = "character", DisScore = "numeric", strand="
 atacpeaks <- import.bed("LY1.chr18.narrowPeak", extraCol= extraCols_narrowPeak)
 
 ```
+
 ========================================================
 
 ## Look at the file

@@ -53,7 +53,6 @@ cpgIslands <- UcscTrack(genome='hg19', chromosome='chr18',
                           end="chromEnd", id="name", shape="box",
                         fill="#006400", name="CGI")
 
-
 #inlcude gene symbol
 
 symbols <- unlist(mapIds(org.Hs.eg.db, gene(grtrack), "SYMBOL", "ENTREZID", multiVals = "first"))
