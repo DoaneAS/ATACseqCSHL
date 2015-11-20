@@ -1,6 +1,6 @@
-source("atacseqFuncitons.R")
 source("https://bioconductor.org/biocLite.R")
-#biocLite("SRAdb")
+biocLite()
+biocLite("ChIPpeakAnno")
 library(ChIPpeakAnno)
 #biocLite("org.Hs.eg.db")
 #biocLite("TxDb.Hsapiens.UCSC.hg19.knownGene")
@@ -8,6 +8,7 @@ library(org.Hs.eg.db)
 library(rtracklayer)
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 
+source("atacseqFuncitons.R")
 
 setwd("ATAC-CSHL")
 
