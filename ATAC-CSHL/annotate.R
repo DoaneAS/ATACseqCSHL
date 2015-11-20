@@ -15,6 +15,7 @@ setwd("ATAC-CSHL")
 
 extraCols_narrowPeak <- c(peakName = "character", DisScore = "numeric", strand="character", foldChange = "numeric", neg.logPv="numeric", neglogQval= "numeric", distPeakStart= "numeric")
 
+#import the file
 atacpeaks <- import.bed("LY1.chr18.narrowPeak", extraCol= extraCols_narrowPeak)
 
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
